@@ -1,0 +1,198 @@
+<Window x:Class="PhotoRenamerApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Photo Renamer and Categorizer"
+        Height="920"
+        Width="1620"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Padding="10" Margin="0,0,0,10" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                    <TextBlock Text="Watch Folder" FontWeight="Bold"/>
+                    <DockPanel Margin="0,4,0,8">
+                        <Button Content="Browse" Width="80" DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding BrowseWatchFolderCommand}"/>
+                        <TextBox Text="{Binding Config.WatchFolder, UpdateSourceTrigger=PropertyChanged}"/>
+                    </DockPanel>
+                    <CheckBox Content="Watch subfolders" IsChecked="{Binding Config.WatchSubfolders}"/>
+                    <CheckBox Content="Auto-start watcher" IsChecked="{Binding Config.AutoStartWatcher}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                    <TextBlock Text="Destination Root" FontWeight="Bold"/>
+                    <DockPanel Margin="0,4,0,8">
+                        <Button Content="Browse" Width="80" DockPanel.Dock="Right" Margin="8,0,0,0" Command="{Binding BrowseDestinationCommand}"/>
+                        <TextBox Text="{Binding Config.DestinationRootFolder, UpdateSourceTrigger=PropertyChanged}"/>
+                    </DockPanel>
+                    <TextBlock Text="Filename Template" FontWeight="Bold"/>
+                    <TextBox Text="{Binding Config.FilenameTemplate, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <Button Content="Save Settings" Margin="0,0,0,6" Command="{Binding SaveCommand}"/>
+                    <Button Content="Refresh Files" Margin="0,0,0,6" Command="{Binding RefreshCommand}"/>
+                    <Button Content="Start Watch" Margin="0,0,0,6" Command="{Binding StartWatcherCommand}"/>
+                    <Button Content="Stop Watch" Command="{Binding StopWatcherCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.2*"/>
+                <ColumnDefinition Width="1.3*"/>
+                <ColumnDefinition Width="1.3*"/>
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Header="Incoming Files" Grid.Column="0" Margin="0,0,10,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="6">
+                        <Button Content="Apply Preset" Width="120" Margin="0,0,6,0" Command="{Binding ApplyPresetCommand}"/>
+                        <Button Content="Rename + Metadata" Width="150" Margin="0,0,6,0" Command="{Binding RenameAndWriteMetadataCommand}"/>
+                        <Button Content="Move to Destination" Width="160" Margin="0,0,6,0" Command="{Binding MoveToDestinationCommand}"/>
+                        <Button Content="Run OCR Hook" Width="120" Command="{Binding RunOcrCommand}"/>
+                    </StackPanel>
+                    <DataGrid ItemsSource="{Binding Files}"
+                              SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              SelectionMode="Single"
+                              CanUserAddRows="False"
+                              Margin="6">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Header="Sel" Width="45"/>
+                            <DataGridTextColumn Binding="{Binding DisplayName}" Header="Current Name" Width="210" IsReadOnly="True"/>
+                            <DataGridTextColumn Binding="{Binding DateTaken, UpdateSourceTrigger=PropertyChanged}" Header="Date Taken" Width="105"/>
+                            <DataGridTextColumn Binding="{Binding Artist, UpdateSourceTrigger=PropertyChanged}" Header="Artist" Width="120"/>
+                            <DataGridTextColumn Binding="{Binding Subject, UpdateSourceTrigger=PropertyChanged}" Header="Subject" Width="130"/>
+                            <DataGridTextColumn Binding="{Binding BriefNote, UpdateSourceTrigger=PropertyChanged}" Header="Note" Width="150"/>
+                            <DataGridTextColumn Binding="{Binding Box, UpdateSourceTrigger=PropertyChanged}" Header="Box" Width="110"/>
+                            <DataGridTextColumn Binding="{Binding ProposedFileName}" Header="Proposed Name" Width="260" IsReadOnly="True"/>
+                            <DataGridTextColumn Binding="{Binding DestinationFolderPreview}" Header="Destination" Width="230" IsReadOnly="True"/>
+                            <DataGridTextColumn Binding="{Binding FileSizeDisplay}" Header="Size" Width="80" IsReadOnly="True"/>
+                            <DataGridTextColumn Binding="{Binding Status}" Header="Status" Width="110" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </GroupBox>
+
+            <Grid Grid.Column="1" Margin="0,0,10,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1.1*"/>
+                    <RowDefinition Height="1.3*"/>
+                </Grid.RowDefinitions>
+
+                <GroupBox Header="Preview" Grid.Row="0" Margin="0,0,0,10">
+                    <Grid Margin="8">
+                        <Border BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Background="#F8F8F8">
+                            <Grid>
+                                <Image Source="{Binding SelectedFile.PreviewImage}" Stretch="Uniform" Margin="8"/>
+                                <TextBlock Text="{Binding SelectedFile.PreviewLabel}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#666"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="Selected File Details" Grid.Row="1">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="10">
+                            <TextBlock Text="Current File" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.DisplayName}" IsReadOnly="True" Margin="0,4,0,8"/>
+                            <TextBlock Text="Date Taken" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.DateTaken, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Artist" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.Artist, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Subject" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.Subject, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Location" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.Location, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Brief Note" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.BriefNote, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Box" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.Box, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Folder Prefix" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.FolderPrefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Folder Suffix" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.FolderSuffix, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="OCR Text" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedFile.OcrText}" AcceptsReturn="True" Height="120" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </GroupBox>
+            </Grid>
+
+            <GroupBox Header="Presets and Safety" Grid.Column="2">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="3*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ListBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset, Mode=TwoWay}" DisplayMemberPath="Name"/>
+
+                    <ScrollViewer Grid.Row="1" Margin="0,10,0,10" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="Preset Name" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedPreset.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Date Taken" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedPreset.DateTaken, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Artist" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedPreset.Artist, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Subject" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedPreset.Subject, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Location" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedPreset.Location, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Brief Note" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedPreset.BriefNote, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Box" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedPreset.Box, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Folder Prefix" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedPreset.FolderPrefix, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="Folder Suffix" FontWeight="Bold"/>
+                            <TextBox Text="{Binding SelectedPreset.FolderSuffix, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <Separator Margin="0,6,0,6"/>
+                            <CheckBox Content="Copy before move for cross-volume safety" IsChecked="{Binding Config.CopyBeforeMoveForCrossVolumeSafety}" Margin="0,0,0,4"/>
+                            <CheckBox Content="Create .bak file before operations" IsChecked="{Binding Config.CreateOperationBackups}" Margin="0,0,0,4"/>
+                            <CheckBox Content="Enable OCR hook" IsChecked="{Binding Config.EnableOcrHook}" Margin="0,0,0,4"/>
+                            <TextBlock Text="OCR executable path" FontWeight="Bold"/>
+                            <TextBox Text="{Binding Config.OcrExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <Separator Margin="0,6,0,6"/>
+                            <CheckBox Content="Use ExifTool for metadata writes" IsChecked="{Binding Config.UseExifTool}" Margin="0,0,0,4"/>
+                            <TextBlock Text="ExifTool executable path" FontWeight="Bold"/>
+                            <TextBox Text="{Binding Config.ExifToolExecutablePath, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="ExifTool extra arguments" FontWeight="Bold"/>
+                            <TextBox Text="{Binding Config.ExifToolAdditionalArgs, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="PDF preview width" FontWeight="Bold"/>
+                            <TextBox Text="{Binding Config.PdfPreviewWidth, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                            <TextBlock Text="PDF preview height" FontWeight="Bold"/>
+                            <TextBox Text="{Binding Config.PdfPreviewHeight, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Add Preset" Width="90" Margin="0,0,6,0" Command="{Binding AddPresetCommand}"/>
+                        <Button Content="Remove Preset" Width="110" Command="{Binding RemovePresetCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+        </Grid>
+
+        <StatusBar Grid.Row="2">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}"/>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>

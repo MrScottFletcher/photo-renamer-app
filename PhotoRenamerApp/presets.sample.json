@@ -1,0 +1,24 @@
+[
+  {
+    "Name": "Dad 1967 Peoria",
+    "Box": "Box 03 - Dad - Peoria",
+    "DateTaken": "1967",
+    "Artist": "Unknown",
+    "Subject": "Family",
+    "Location": "Peoria, Illinois",
+    "FolderPrefix": "Family Archive",
+    "FolderSuffix": "Peoria",
+    "BriefNote": "Slides"
+  },
+  {
+    "Name": "School Artwork 1984",
+    "Box": "Box 09 - School Years",
+    "DateTaken": "1984",
+    "Artist": "Scott",
+    "Subject": "School Artwork",
+    "Location": "Illinois",
+    "FolderPrefix": "School",
+    "FolderSuffix": "Artwork",
+    "BriefNote": "Childhood"
+  }
+]
