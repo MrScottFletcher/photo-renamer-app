@@ -162,14 +162,14 @@ public sealed class MainViewModel : ObservableObject
         {
             try
             {
+                _watcher.IgnoreEvents = true;
+
                 if (Config.CreateOperationBackups)
                 {
                     stage = "CreateBackup";
                     _fileOperations.CreateBackup(item.CurrentPath);
                 }
                 //Need to close the file so tha the EXIF tool can open and write the file.
-
-                _watcher.IgnoreEvents = true;
 
                 stage = "RenameFile";
                 var renamedPath = _fileOperations.RenameFile(item, Config.FilenameTemplate, true);

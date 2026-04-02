@@ -49,9 +49,21 @@ public sealed class FileOperationService
 
     public string CreateBackup(string fullPath)
     {
-        var backupPath = fullPath + ".bak";
-        File.Copy(fullPath, backupPath, overwrite: true);
-        return backupPath;
+        //get the directory path of where we are
+        string directoryName = Path.GetDirectoryName(fullPath);
+
+        string backupDirectory = Path.Combine(directoryName, "Backup");
+
+        //make sure the backup directory is there
+        Directory.CreateDirectory(backupDirectory);
+
+        string fileNameOnly = Path.GetFileName(fullPath);
+
+        //set the backup directory path
+        string backupFullPath = Path.Combine(backupDirectory, fileNameOnly + ".bak");
+                
+        File.Copy(fullPath, backupFullPath, overwrite: true);
+        return backupFullPath;
     }
 
     private static string MakeUnique(string fullPath)
@@ -62,8 +74,8 @@ public sealed class FileOperationService
         var ext = Path.GetExtension(fullPath);
         for (var i = 2; i < 10000; i++)
         {
-            string number = String.Format("000", i);
-            var candidate = Path.Combine(dir, $"{name}_{number}){ext}");
+            string number = i.ToString("D3");
+            var candidate = Path.Combine(dir, $"{name}_{number}{ext}");
             if (!File.Exists(candidate)) return candidate;
         }
         throw new IOException($"Could not create a unique file name for {fullPath}.");
