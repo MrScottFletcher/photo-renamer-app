@@ -1,4 +1,5 @@
 using PhotoRenamerApp.Models;
+using System.IO;
 
 namespace PhotoRenamerApp.Services;
 
@@ -7,6 +8,7 @@ public sealed class FileWatcherService : IDisposable
     private FileSystemWatcher? _watcher;
 
     public event EventHandler<string>? StableFileDetected;
+    public bool IgnoreEvents { get; set; }
 
     public void Start(AppConfig config)
     {
@@ -48,6 +50,9 @@ public sealed class FileWatcherService : IDisposable
 
     private async Task ProbeAsync(string path)
     {
+        if (IgnoreEvents)
+            return;
+    
         for (var i = 0; i < 8; i++)
         {
             try

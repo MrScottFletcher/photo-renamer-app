@@ -4,6 +4,8 @@ using System.Windows.Media.Imaging;
 using Docnet.Core;
 using Docnet.Core.Models;
 using PhotoRenamerApp.Models;
+using System.IO;
+
 
 namespace PhotoRenamerApp.Services;
 
@@ -52,16 +54,21 @@ public sealed class PreviewService
 
     private static BitmapSource LoadBitmapPreview(string path, int decodeWidth)
     {
-        using var stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        var image = new BitmapImage();
-        image.BeginInit();
-        image.CacheOption = BitmapCacheOption.OnLoad;
-        image.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
-        image.DecodePixelWidth = decodeWidth;
-        image.StreamSource = stream;
-        image.EndInit();
-        image.Freeze();
-        return image;
+        using (var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite)) // allows other processes to access too
+        {
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad; // CRITICAL
+            image.StreamSource = stream;
+            image.EndInit();
+            image.Freeze(); // optional but recommended
+
+            return image;
+        } // stream is CLOSED here
     }
 
     private static BitmapSource RenderPdfFirstPage(string path, AppConfig config)

@@ -1,7 +1,8 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.IO;
 using PhotoRenamerApp.Models;
 
 namespace PhotoRenamerApp.Services;
@@ -96,7 +97,7 @@ public sealed class ExifToolMetadataService : IMetadataService
             .Select(x => x!.Trim())
             .ToList();
 
-        return parts.Count == 0 ? item.DisplayName : string.Join(" - ", parts);
+        return parts.Count == 0 ? item.DisplayName : string.Join("-", parts);
     }
 
     private static string BuildDescription(FileItem item)
@@ -153,15 +154,42 @@ public sealed class ExifToolMetadataService : IMetadataService
             startInfo.ArgumentList.Add(arg);
         }
 
-        using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start ExifTool process.");
-        var stdOut = process.StandardOutput.ReadToEnd();
-        var stdErr = process.StandardError.ReadToEnd();
-        process.WaitForExit();
-
-        if (process.ExitCode != 0)
+        if (!IsFileLocked(filePath))
         {
-            var message = string.IsNullOrWhiteSpace(stdErr) ? stdOut : stdErr;
-            throw new InvalidOperationException($"ExifTool failed for '{Path.GetFileName(filePath)}': {message}".Trim());
+            using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start ExifTool process.");
+            var stdOut = process.StandardOutput.ReadToEnd();
+            var stdErr = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            if (process.ExitCode != 0)
+            {
+                var message = string.IsNullOrWhiteSpace(stdErr) ? stdOut : stdErr;
+                throw new InvalidOperationException($"ExifTool failed for '{Path.GetFileName(filePath)}': {message}".Trim());
+            }
+        }
+        else
+        {
+            var message = "The file is locked by something.";
+            throw new InvalidOperationException($" {message} - '{Path.GetFileName(filePath)}'");
+        }
+    }
+
+    public static bool IsFileLocked(string path)
+    {
+        try
+        {
+            using (var stream = new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.ReadWrite,
+                FileShare.None)) // exclusive lock attempt
+            {
+                return false; // we got it → NOT locked
+            }
+        }
+        catch (IOException)
+        {
+            return true; // something else has it
         }
     }
 

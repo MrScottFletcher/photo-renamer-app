@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using PhotoRenamerApp.Models;
+using System.IO;
+
 
 namespace PhotoRenamerApp.Services;
 
@@ -26,19 +28,20 @@ public static class FilenameRuleEngine
 
         var basename = parts.Count == 0
             ? Sanitize(Path.GetFileNameWithoutExtension(item.CurrentPath))
-            : string.Join(" - ", parts);
+            : string.Join("-", parts);
 
         return basename + item.Extension;
     }
 
     public static string BuildDestinationFolder(FileItem item)
     {
-        var yearBucket = ExtractYear(item.DateTaken);
+        //var yearBucket = ExtractYear(item.DateTaken);
         var box = string.IsNullOrWhiteSpace(item.Box) ? "Unsorted Box" : Sanitize(item.Box);
-        var subject = string.IsNullOrWhiteSpace(item.Subject) ? "General" : Sanitize(item.Subject);
+        //var subject = string.IsNullOrWhiteSpace(item.Subject) ? "General" : Sanitize(item.Subject);
         var prefix = string.IsNullOrWhiteSpace(item.FolderPrefix) ? string.Empty : Sanitize(item.FolderPrefix) + " ";
         var suffix = string.IsNullOrWhiteSpace(item.FolderSuffix) ? string.Empty : " " + Sanitize(item.FolderSuffix);
-        return Path.Combine(box, $"{prefix}{yearBucket} - {subject}{suffix}".Trim());
+        //return Path.Combine(box, $"{prefix}{yearBucket}{suffix}".Trim());
+        return Path.Combine(box, $"{prefix}{suffix}".Trim());
     }
 
     public static string Sanitize(string? value)

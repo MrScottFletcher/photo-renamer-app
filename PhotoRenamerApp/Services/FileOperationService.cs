@@ -1,13 +1,17 @@
 using PhotoRenamerApp.Models;
+using System.IO;
 
 namespace PhotoRenamerApp.Services;
 
 public sealed class FileOperationService
 {
-    public string RenameFile(FileItem item, string template)
+    public string RenameFile(FileItem item, string template, bool incrementIfDuplicate)
     {
         var directory = Path.GetDirectoryName(item.CurrentPath)!;
-        var targetPath = MakeUnique(Path.Combine(directory, FilenameRuleEngine.BuildFileName(item, template)));
+        string targetPath = Path.Combine(directory, FilenameRuleEngine.BuildFileName(item, template));
+
+        if (incrementIfDuplicate)
+            targetPath = MakeUnique(targetPath);
 
         if (!string.Equals(item.CurrentPath, targetPath, StringComparison.OrdinalIgnoreCase))
         {
@@ -58,7 +62,8 @@ public sealed class FileOperationService
         var ext = Path.GetExtension(fullPath);
         for (var i = 2; i < 10000; i++)
         {
-            var candidate = Path.Combine(dir, $"{name} ({i}){ext}");
+            string number = String.Format("000", i);
+            var candidate = Path.Combine(dir, $"{name}_{number}){ext}");
             if (!File.Exists(candidate)) return candidate;
         }
         throw new IOException($"Could not create a unique file name for {fullPath}.");

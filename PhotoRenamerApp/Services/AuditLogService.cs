@@ -1,5 +1,6 @@
-namespace PhotoRenamerApp.Services;
+using System.IO;
 
+namespace PhotoRenamerApp.Services;
 public sealed class AuditLogService
 {
     public void Append(string logPath, string message)

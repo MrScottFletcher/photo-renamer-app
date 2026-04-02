@@ -1,6 +1,7 @@
 using System.Windows.Media.Imaging;
 using PhotoRenamerApp.Infrastructure;
 using PhotoRenamerApp.Services;
+using System.IO;
 
 namespace PhotoRenamerApp.Models;
 

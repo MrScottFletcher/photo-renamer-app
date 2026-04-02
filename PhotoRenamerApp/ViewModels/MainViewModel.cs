@@ -5,6 +5,8 @@ using System.Windows.Threading;
 using PhotoRenamerApp.Infrastructure;
 using PhotoRenamerApp.Models;
 using PhotoRenamerApp.Services;
+using System.IO;
+
 
 namespace PhotoRenamerApp.ViewModels;
 
@@ -154,6 +156,7 @@ public sealed class MainViewModel : ObservableObject
 
     public void RenameAndWriteMetadata(IEnumerable<FileItem> items)
     {
+        string stage = "Begin";
         var count = 0;
         foreach (var item in items)
         {
@@ -161,20 +164,34 @@ public sealed class MainViewModel : ObservableObject
             {
                 if (Config.CreateOperationBackups)
                 {
+                    stage = "CreateBackup";
                     _fileOperations.CreateBackup(item.CurrentPath);
                 }
+                //Need to close the file so tha the EXIF tool can open and write the file.
 
-                var renamedPath = _fileOperations.RenameFile(item, Config.FilenameTemplate);
+                _watcher.IgnoreEvents = true;
+
+                stage = "RenameFile";
+                var renamedPath = _fileOperations.RenameFile(item, Config.FilenameTemplate, true);
+
+                stage = "UpdateMetadata";
                 _metadataService.UpdateMetadata(item, Config);
+
+                stage = "WriteManifest";
                 _manifestService.WriteManifest(item, Config);
+
                 item.Status = "Metadata Written";
                 _auditLog.Append(Config.AuditLogFilePath, $"UPDATED | {renamedPath}");
                 count++;
             }
             catch (Exception ex)
             {
-                item.Status = "Error";
-                _auditLog.Append(Config.AuditLogFilePath, $"ERROR | {item.CurrentPath} | {ex.Message}");
+                item.Status = "Error " + stage;
+                _auditLog.Append(Config.AuditLogFilePath, $"ERROR | in {stage} - {item.CurrentPath} | {ex.Message}");
+            }
+            finally
+            {
+                _watcher.IgnoreEvents = false;
             }
         }
 
@@ -185,27 +202,44 @@ public sealed class MainViewModel : ObservableObject
 
     public void MoveToDestination(IEnumerable<FileItem> items)
     {
+        string stage = "Begin";
         var count = 0;
         foreach (var item in items.ToList())
         {
             try
             {
+                _watcher.IgnoreEvents = true;
+
                 if (Config.CreateOperationBackups)
                 {
+                    stage = "CreateBackup";
                     _fileOperations.CreateBackup(item.CurrentPath);
                 }
 
-                var renamedPath = _fileOperations.RenameFile(item, Config.FilenameTemplate);
+                stage = "RenameFile";
+                var renamedPath = _fileOperations.RenameFile(item, Config.FilenameTemplate,false);
+
+                stage = "UpdateMetadata"; 
                 _metadataService.UpdateMetadata(item, Config);
+
+                stage = "MoveToDestination"; 
                 var movedPath = _fileOperations.MoveToDestination(item, Config.DestinationRootFolder, Config.CopyBeforeMoveForCrossVolumeSafety);
+
+                stage = "WriteManifest";
                 _manifestService.WriteManifest(item, Config);
+                
+                stage = "_auditLog.Append";
                 _auditLog.Append(Config.AuditLogFilePath, $"MOVED | {renamedPath} => {movedPath}");
                 count++;
             }
             catch (Exception ex)
             {
-                item.Status = "Error";
-                _auditLog.Append(Config.AuditLogFilePath, $"ERROR | {item.CurrentPath} | {ex.Message}");
+                item.Status = "Error " + stage;
+                _auditLog.Append(Config.AuditLogFilePath, $"ERROR | in {stage} - {item.CurrentPath} | {ex.Message}");
+            }
+            finally
+            {
+                _watcher.IgnoreEvents = false;
             }
         }
 
@@ -248,7 +282,7 @@ public sealed class MainViewModel : ObservableObject
     {
         if (!IsSupported(path)) return;
 
-        Application.Current.Dispatcher.Invoke(() =>
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
             if (Files.Any(f => string.Equals(f.CurrentPath, path, StringComparison.OrdinalIgnoreCase))) return;
             var item = CreateFileItem(path);
