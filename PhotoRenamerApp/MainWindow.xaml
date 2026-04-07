@@ -59,6 +59,8 @@
             <GroupBox Header="Incoming Files" Grid.Column="0" Margin="0,0,10,0">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="6">
+                        <Button Content="Select All" Width="70" Margin="0,0,6,0" Command="{Binding SelectAllCommand}"/>
+                        <Button Content="Toggle" Width="50" Margin="0,0,6,0" Command="{Binding ToggleSelectAllCommand}"/>
                         <Button Content="Apply Preset" Width="120" Margin="0,0,6,0" Command="{Binding ApplyPresetCommand}"/>
                         <Button Content="Rename + Metadata" Width="150" Margin="0,0,6,0" Command="{Binding RenameAndWriteMetadataCommand}"/>
                         <Button Content="Move to Destination" Width="160" Margin="0,0,6,0" Command="{Binding MoveToDestinationCommand}"/>

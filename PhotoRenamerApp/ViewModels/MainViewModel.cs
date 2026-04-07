@@ -42,6 +42,8 @@ public sealed class MainViewModel : ObservableObject
         AddPresetCommand = new RelayCommand(_ => AddPreset());
         RemovePresetCommand = new RelayCommand(_ => RemovePreset(), _ => SelectedPreset is not null);
         ApplyPresetCommand = new RelayCommand(_ => ApplyPresetToCheckedFiles(), _ => SelectedPreset is not null && GetTargetFiles().Any());
+        SelectAllCommand = new RelayCommand(_ => SelectAllFiles());
+        ToggleSelectAllCommand = new RelayCommand(_ => ToggleSelectAllFiles());
         RenameAndWriteMetadataCommand = new RelayCommand(_ => RenameAndWriteMetadata(GetTargetFiles()), _ => GetTargetFiles().Any());
         MoveToDestinationCommand = new RelayCommand(_ => MoveToDestination(GetTargetFiles()), _ => GetTargetFiles().Any());
         RunOcrCommand = new AsyncRelayCommand(_ => RunOcrOnSelectionAsync(), _ => GetTargetFiles().Any());
@@ -106,6 +108,8 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand AddPresetCommand { get; }
     public RelayCommand RemovePresetCommand { get; }
     public RelayCommand ApplyPresetCommand { get; }
+    public RelayCommand SelectAllCommand { get; }
+    public RelayCommand ToggleSelectAllCommand { get; }
     public RelayCommand RenameAndWriteMetadataCommand { get; }
     public RelayCommand MoveToDestinationCommand { get; }
     public AsyncRelayCommand RunOcrCommand { get; }
@@ -375,6 +379,35 @@ public sealed class MainViewModel : ObservableObject
         StatusMessage = $"Applied preset '{SelectedPreset.Name}' to {count} file(s).";
         RaiseCommandStates();
     }
+
+    private void SelectAllFiles()
+    {
+        var count = 0;
+        foreach (var item in Files)
+        {
+            if(item is null) continue;
+            item.IsSelected = true;
+            count++;
+        }
+
+        StatusMessage = $"Selected {count} file(s).";
+        RaiseCommandStates();
+    }
+
+    private void ToggleSelectAllFiles()
+    {
+        var count = 0;
+        foreach (var item in Files)
+        {
+            if (item is null) continue;
+            item.IsSelected = !item.IsSelected;
+            count++;
+        }
+
+        StatusMessage = $"Toggled {count} file(s).";
+        RaiseCommandStates();
+    }
+
 
     private async Task RunOcrOnSelectionAsync()
     {
